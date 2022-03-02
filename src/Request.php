@@ -2,6 +2,7 @@
 
 namespace Mateodioev\Request;
 
+use Mateodioev\Request\Utils;
 use Exception;
 
 class Request {
