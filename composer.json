@@ -8,10 +8,12 @@
             "Mateodioev\\Request\\": "src/"
         }
     },
+    "config": {
+        "optimize-autoloader": true
+    },
     "authors": [
         {
             "name": "Mateodioev"
         }
-    ],
-    "require": {}
+    ]
 }
