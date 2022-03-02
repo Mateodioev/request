@@ -1,0 +1,17 @@
+{
+    "name": "mateodioev/request",
+    "description": "Easy curl",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Mateodioev\\Request\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Mateodioev"
+        }
+    ],
+    "require": {}
+}
