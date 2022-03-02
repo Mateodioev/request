@@ -6,7 +6,7 @@ Github:
 
 ```bash
 git clone https://github.com/Mateodioev/request
-cd db
+cd request
 composer install
 ```
 
