@@ -10,7 +10,7 @@ class Request {
   public static $ch;
   public static $url;
 
-  private static $headers;
+  private static $headers = [];
   private static $body;
   private static $err;
   private static $error;
