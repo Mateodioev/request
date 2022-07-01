@@ -4,6 +4,7 @@ namespace Mateodioev\Request;
 
 use Mateodioev\Request\Utils;
 use Exception;
+use Mateodioev\Utils\Exceptions\RequestException;
 
 class Request {
   
@@ -21,12 +22,12 @@ class Request {
 
   /**
    * Curl init
-   * @throws Exception
+   * @throws UnexpectedValueException|RequestException
    */
   public static function Init(string $url)
   {
     if (!extension_loaded('curl')) {
-      throw new Exception('cURL extension is not loaded');
+      throw new RequestException("Curl extension is not loaded");
     } if (self::$ch) self::$ch = null;
 
     Utils::ValidateUrl($url);
@@ -39,12 +40,12 @@ class Request {
    * Add multiple options to curl
    *
    * @param array $opt
-   * @throws Exception
+   * @throws RequestException
    */
   public static function AddOpts(array $opt): void
   {
     if (self::$ch === null) {
-      throw new Exception("Curl not initialized");
+      throw new RequestException('Curl is not initialized');
     }
     curl_setopt_array(self::$ch, $opt);
   }
@@ -90,6 +91,10 @@ class Request {
     self::$ch = null;
   }
 
+  /**
+   * Exec curl
+   * @throws RequestException
+   */
   public static function Run(bool $log = true): array
   {
     self::$response = curl_exec(self::$ch);
@@ -102,6 +107,7 @@ class Request {
     if ($log && self::$response == false) {
       error_log('[req] Fail to send request to ' . self::$url . ' ('.self::$method.')');
       error_log('[req] Error('.self::$err.'): ' . self::$error);
+      throw new RequestException('Fail to send request to ' . self::$url . ' ('.self::$method.')');
     }
 
     return [

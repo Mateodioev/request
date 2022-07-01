@@ -15,5 +15,8 @@
         {
             "name": "Mateodioev"
         }
-    ]
+    ],
+    "require": {
+        "mateodioev/utils": "^1.2"
+    }
 }
