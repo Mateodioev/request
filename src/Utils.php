@@ -2,28 +2,19 @@
 
 namespace Mateodioev\Request;
 
-use Mateodioev\Utils\{Strings, Time};
-use UnexpectedValueException;
+use Mateodioev\Utils\Network;
+use Mateodioev\Utils\Exceptions\RequestException;
 
 class Utils {
   
   /**
    * Validate url
-   * @throws UnexpectedValueException
+   * @throws RequestException
    */
   public static function ValidateUrl(string $url): void
   {
-    if (Strings::IsValidUrl($url) !== true) {
-      throw new UnexpectedValueException("Invalid url");
+    if (!Network::IsValidUrl($url)) {
+      throw new RequestException('Invalid URL'); 
     }
-  }
-
-  /**
-   * Get took
-   * @deprecated Use `Mateodioev\Utils\Time::Took($float, $round)` instead
-   */
-  public static function Took(bool $float = false, int $round = 3)
-  {
-    return Time::Took($float, $round);
   }
 }
