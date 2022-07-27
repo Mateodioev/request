@@ -49,5 +49,5 @@ $res->getHeaderResponse('x-author')[0];
 
 $res->setDebug(true); // Print all request info
 echo $res // Print 
-
 ```
+![example output](https://i.imgur.com/9gCymkL.png)
