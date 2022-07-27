@@ -13,7 +13,7 @@ class Utils {
    */
   public static function ValidateUrl(string $url): void
   {
-    if (!Network::IsValidUrl($url)) {
+    if (empty($url) || !Network::IsValidUrl($url)) {
       throw new RequestException('Invalid URL'); 
     }
   }
