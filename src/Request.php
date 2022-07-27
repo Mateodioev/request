@@ -1,157 +1,176 @@
-<?php 
+<?php
 
 namespace Mateodioev\Request;
 
 use Mateodioev\Request\Utils;
-use Exception;
 use Mateodioev\Utils\Exceptions\RequestException;
+use Mateodioev\Utils\Network;
+use stdClass, CurlHandle;
+use function curl_init, curl_setopt_array, curl_setopt, strtoupper;
 
-class Request {
-  
-  public static $ch;
-  public static $url;
+class Request
+{
 
-  private static $headers = [];
-  private static $body;
-  private static $err;
-  private static $error;
-
-  private static $status;
-  public static $response;
-  public static $method;
+  private stdClass $headerCallback;
 
   /**
-   * Curl init
-   * @throws UnexpectedValueException|RequestException
+   * cURL resource
    */
-  public static function Init(string $url)
-  {
-    if (!extension_loaded('curl')) {
-      throw new RequestException("Curl extension is not loaded");
-    } if (self::$ch) self::$ch = null;
+  protected ?CurlHandle $ch = null;
 
-    Utils::ValidateUrl($url);
-    self::$url = $url;
-    self::$ch = curl_init($url);
-    self::AddOpts([CURLOPT_RETURNTRANSFER => true, CURLOPT_SSL_VERIFYPEER => false, CURLOPT_SSL_VERIFYHOST => 0,]);
+  protected string $url;
+
+  /**
+   * Supported http methods
+   */
+  public array $valid_methods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'PATCH'];
+
+  /**
+   * Error data (curl error)
+   */
+  public stdClass $error;
+
+  public static array $default_opts = [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HEADER => false,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_AUTOREFERER => true,
+    CURLOPT_CONNECTTIMEOUT => 30,
+    CURLOPT_TIMEOUT => 60,
+    CURLINFO_HEADER_OUT => true,
+  ];
+
+  public function __construct() {
+    $this->headerCallback = new stdClass;
+    $this->headerCallback->rawResponseHeaders = '';
+    $this->headerCallback->arrayResponseHeaders = [];
+
+    $this->error  = new stdClass;
+    $this->error->message = '';
+    $this->error->error   = false;
   }
 
   /**
-   * Add multiple options to curl
+   * Start curlHandle
    *
-   * @param array $opt
-   * @throws RequestException
+   * @param string $url URL to make request
+   * @param array $options An array specifying which options to set and their values. The keys should be valid curl_setopt constants or their integer equivalents
    */
-  public static function AddOpts(array $opt): void
+  public function init(string $url, array $options = []): Request
   {
-    if (self::$ch === null) {
-      throw new RequestException('Curl is not initialized');
+    Utils::ValidateUrl($url);
+    $this->url = $url;
+
+    if ($this->ch == null) {
+      $this->ch = curl_init($this->url);
+      $this->addOpt(
+        CURLOPT_HEADERFUNCTION,
+        Utils::createHeaderCallback($this->headerCallback)
+      );
     }
-    curl_setopt_array(self::$ch, $opt);
+    // Default CURL options
+    $this->addOpts(self::$default_opts);
+
+    if (!empty($options)) {
+      return $this->addOpts($options);
+    }
+    return $this;
+  }
+
+  /**
+   * Create methods (GET, HEAD, POST, PUT, DELETE, PATCH)
+   */
+  public static function __callStatic($method, $arguments): Request
+  {
+    $instance = new self;
+    $url = array_shift($arguments);
+
+    $instance->init($url, $arguments[0] ?? []);
+    $instance->setMethod($method);
+
+    return $instance;
   }
 
   /**
    * Add curl options
    */
-  public static function AddOpt($opt, $value): void
+  public function addOpts(array $opts): Request
   {
-    self::AddOpts([$opt => $value]);
-  }
-
-  /**
-   * Add headers to curl
-   */
-  public static function addHeaders(array $headers = []): void
-  {
-    self::$headers = array_merge(self::$headers, $headers);
-    self::AddOpt(CURLOPT_HTTPHEADER, self::$headers);
-  }
-
-  /**
-   * Set body to curl
-   */
-  public static function addBody($body): void
-  {
-    self::$body = $body;
-    self::AddOpt(CURLOPT_POSTFIELDS, self::$body);
-  }
-  
-  /**
-   * Set curl method (GET, POST, PUT, DELETE, ETC)
-   */
-  public static function setMethod(string $method)
-  {
-    self::$method = strtoupper($method);
-    self::AddOpt(CURLOPT_CUSTOMREQUEST, self::$method);
-  }
-
-  public static function Close()
-  {
-    curl_close(self::$ch);
-    self::$ch = null;
-  }
-
-  /**
-   * Exec curl
-   * @throws RequestException
-   */
-  public static function Run(bool $log = true): array
-  {
-    self::$response = curl_exec(self::$ch);
-          $info     = curl_getinfo(self::$ch);
-    self::$status   = $info['http_code'];
-    self::$err      = curl_errno(self::$ch);
-    self::$error    = curl_error(self::$ch);
-    self::Close();
-
-    if ($log && self::$response == false) {
-      error_log('[req] Fail to send request to ' . self::$url . ' ('.self::$method.')');
-      error_log('[req] Error('.self::$err.'): ' . self::$error);
-      throw new RequestException('Fail to send request to ' . self::$url . ' ('.self::$method.')');
+    if (!$this->ch instanceof CurlHandle) {
+      throw new RequestException('Curl no init');
     }
 
-    return [
-      'ok' => self::$response !== false,
-      'info' => $info,
-      'code' => self::$status,
-      'response' => self::$response,
-      'err' => self::$err,
-      'error' => self::$error,
-    ];
+    try {
+      curl_setopt_array($this->ch, $opts);
+      return $this;
+    } catch (\Throwable $e) {
+      throw new RequestException($e->getMessage(), 500, $e);
+    }
   }
 
   /**
-   * Create and execute curl request
+   * Add curl option
    */
-  public static function Create(string $url, string $method = 'GET', ?array $headers = null, $post=null): array
+  public function addOpt(int $option, mixed $value): Request
   {
-    self::Init($url);
-    self::setMethod($method);
-    if ($headers) self::addHeaders($headers);
-    if ($post) self::addBody($post);
-    // Execute request
-    return self::Run();
+    try {
+      curl_setopt($this->ch, $option, $value);
+      return $this;
+    } catch (\Throwable $e) {
+      throw new RequestException($e->getMessage(), 500, $e);
+    }
   }
 
   /**
-   * Download file and save to local
+   * Set HTTP Method (GET, HEAD, POST, PUT, DELETE, PATCH)
    */
-  public static function Download(string $url, ?string $file_name = null)
+  public function setMethod(string $method): Request
   {
-    $file_name = $file_name ?? basename($url) ?? uniqid() . 'file.tmp';
-    $fp = fopen($file_name, 'wb');
+    $method = strtoupper($method);
 
-    self::Init($url);
-    self::AddOpts([CURLOPT_FILE => $fp, CURLOPT_HEADER => 0]);
+    if (in_array($method, $this->valid_methods)) {
+      $this->addOpt(CURLOPT_CUSTOMREQUEST, $method);
+      return $this;
+    } else {
+      throw new RequestException('Invalid http method: ' . $method);
+    }
+  }
+
+  public function Run(?string $endpoint): RequestResponse
+  {
+    if ($endpoint) {
+      if (!Network::IsValidUrl($this->url . $endpoint)) {
+        $endpoint = urlencode($endpoint);
+      } $this->addOpt(CURLOPT_URL, $this->url . $endpoint);
+    }
+
+    $response = curl_exec($this->ch);
+    $info = curl_getinfo($this->ch);
+    $headers = new stdClass;
     
-    self::$response = curl_exec(self::$ch);
-    self::Close();
-    fclose($fp);
-    return $file_name;
+    if ($response === false) {
+      $this->error->error = true;
+      $this->error->message = curl_error($this->ch);
+      $this->error->msg = 'Curl error (' . $this->error->error . '): ' . $this->error->message;
+      throw new RequestException($this->error->msg);
+      
+    } else {
+      $headers->request = Utils::parseHeadersHandle($info['request_header']);
+      $headers->response = $this->headerCallback->arrayResponseHeaders;
+    }
+
+    // Close handle
+    curl_close($this->ch);
+
+    return new RequestResponse($response, $headers, $this->error);
   }
 
-  public static function __callStatic($method, $settings)
+  /**
+   * Return CurlHandle instance
+   */
+  public function getCurlInstance(): ?CurlHandle
   {
-    return self::Create(@$settings[0], $method, @$settings[1], @$settings[2]);
+    return $this->ch;
   }
+
 }
