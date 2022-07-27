@@ -23,24 +23,31 @@ require 'path/to/vendor/autoload.php';
 
 use Mateodioev\Request\Request;
 
-# GET
-$res = Request::Get('https://httpbin.org/get');
-# POST
-$res = Request::Post('https://httpbin.org/post');
+# Start request
+$req = new Request;
+$req->Init($url, $curlopt_options); // $curlopt_options is opcional
 
-# Format
-$method = 'GET'; // GET, POST, PUT, DELETE, etc.
-$res = Request::$method($url, $headers_array, $postfield_data);
+$req->setMethod('GET');  // GET, HEAD, POST, PUT, DELETE, PATCH
 
-# Methods
-Request::Init();
-Request::AddOpts();
-Request::AddOpt();
-Request::addHeaders();
-Request::addBody();
-Request::setMethod();
-Request::Close();
-Request::Run();
-Request::Create();
-Request::Download();
+
+# Start request static
+$req = Request::http_method_name($url, $curlopt_options);
+
+# Run request
+$res = $req->Run($endpoint); // $endpoint is optional
+echo $res
+```
+
+## Request Response
+```php
+$req = Request::get('https://netotf.space/v1/api');
+$res = $req->Run('/http-cat/200');
+$res->toJson(true); // Parse body responde to json
+// Headers info
+$res->getHeaderRequest('Host')[0];
+$res->getHeaderResponse('x-author')[0];
+
+$res->setDebug(true); // Print all request info
+echo $res // Print 
+
 ```
