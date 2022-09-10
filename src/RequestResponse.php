@@ -7,7 +7,7 @@ use function json_decode, json_last_error_msg;
 
 class RequestResponse
 {
-  private string|stdClass $body = '';
+  private string|stdClass|array $body = '';
   private stdClass $headers;
   private stdClass $error;
 
@@ -110,7 +110,7 @@ EOF;
     return $this->headers->response[$key] ?? [];
   }
   
-  public function getBody(): string|stdClass
+  public function getBody(): string|stdClass|array
   {
     return $this->body;
   }
