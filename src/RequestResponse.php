@@ -2,23 +2,26 @@
 
 namespace Mateodioev\Request;
 
+use Mateodioev\Utils\fakeStdClass;
 use stdClass;
 use function json_decode, json_last_error_msg;
 
 class RequestResponse
 {
-  private string|stdClass|array $body = '';
+  private string|fakeStdClass|stdClass|array $body = '';
   private stdClass $headers;
   private stdClass $error;
+  private array $info;
 
   private bool $debug = false;
 
 
 
-  public function __construct($body, stdClass $headers, stdClass $errors) {
+  public function __construct($body, stdClass $headers, stdClass $errors, array $curlInfo) {
     $this->body = $body;
     $this->headers = $headers;
     $this->error = $errors;
+    $this->info = $curlInfo;
   }
 
   /**
@@ -46,6 +49,11 @@ class RequestResponse
       $header_response .= $key . ': ' . implode(',', $value) . PHP_EOL;
     }
 
+    $curl_info = '';
+    foreach ($this->info as $key => $value) {
+      $curl_info .= $key . ': ' . var_export($value, true) . PHP_EOL;
+    }
+
     $error = '';
     if ($this->isError()) {
       $error = '# Error ' . PHP_EOL . $this->getErrorMessage() . PHP_EOL;
@@ -55,6 +63,8 @@ class RequestResponse
 {$header_request}
 # Headers-response
 {$header_response}
+# Curl information
+{$curl_info}
 {$error}
 # Body
 {$this->body}
@@ -72,6 +82,8 @@ EOF;
 
     try {
       $this->body = json_decode($body, $asociative);
+      if (!$asociative) $this->body = new fakeStdClass($this->body);
+
     } catch (\Throwable $e) {
       if (json_last_error_msg() != 'No error') {
         $this->body = $body; // Return original
@@ -100,27 +112,37 @@ EOF;
     return $this->error->message ?? '';
   }
 
+  /**
+   * Get a sent header
+   */
   public function getHeaderRequest(string $key): array
   {
     return $this->headers->request[$key] ?? [];
   }
 
+  /**
+   * Get a received header
+   */
   public function getHeaderResponse(string $key): array
   {
     return $this->headers->response[$key] ?? [];
   }
   
-  public function getBody(): string|stdClass|array
+  /**
+   * Get request body
+   */
+  public function getBody(): string|fakeStdClass|stdClass|array
   {
     return $this->body;
   }
 
-  public function __toString()
+  public function getInfo(?string $key = null)
   {
-    if (!is_string($this->body)) {
-      $this->body = var_export($this->body, true);
-    }
-    
+    return $key !== null ? $this->info[$key] : $this->info;
+  }
+
+  public function __toString(): string
+  {
     if ($this->debug) {
       return $this->debugInfo();
     } else {

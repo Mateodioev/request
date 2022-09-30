@@ -122,6 +122,16 @@ class Request
   }
 
   /**
+   * Add headers to request
+   * 
+   * An array of HTTP header fields to set, in the format `array('Content-type: text/plain', 'Content-length: 100')`
+   */
+  public function addHeaders(array $headers): Request
+  {
+    return $this->addOpt(CURLOPT_HTTPHEADER, $headers);
+  }
+
+  /**
    * Set HTTP Method (GET, HEAD, POST, PUT, DELETE, PATCH)
    */
   public function setMethod(string $method): Request
@@ -136,12 +146,13 @@ class Request
     }
   }
 
-  public function Run(?string $endpoint): RequestResponse
+  public function Run(?string $endpoint = null): RequestResponse
   {
     if ($endpoint) {
       if (!Network::IsValidUrl($this->url . $endpoint)) {
         $endpoint = urlencode($endpoint);
-      } $this->addOpt(CURLOPT_URL, $this->url . $endpoint);
+      }
+      $this->addOpt(CURLOPT_URL, $this->url . $endpoint);
     }
 
     $response = curl_exec($this->ch);
@@ -162,7 +173,7 @@ class Request
     // Close handle
     curl_close($this->ch);
 
-    return new RequestResponse($response, $headers, $this->error);
+    return new RequestResponse($response, $headers, $this->error, $info);
   }
 
   /**
