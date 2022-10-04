@@ -161,8 +161,9 @@ class Request
     
     if ($response === false) {
       $this->error->error = true;
+      $this->error->errno = curl_errno($this->ch);
       $this->error->message = curl_error($this->ch);
-      $this->error->msg = 'Curl error (' . $this->error->error . '): ' . $this->error->message;
+      $this->error->msg = 'Curl error (' . $this->error->errno . '): ' . $this->error->message;
       throw new RequestException($this->error->msg);
       
     } else {
