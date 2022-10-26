@@ -52,6 +52,14 @@ class Request
   }
 
   /**
+   * Initialize a new request
+   */
+  public static function create(string $url): Request
+  {
+    return (new self())->init($url);
+  }
+
+  /**
    * Start curlHandle
    *
    * @param string $url URL to make request
