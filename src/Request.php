@@ -2,6 +2,7 @@
 
 namespace Mateodioev\Request;
 
+use Mateodioev\NetscapeCookie\FileHandler as CookieFileHandler;
 use Mateodioev\Request\Utils;
 use Mateodioev\Utils\Exceptions\RequestException;
 use Mateodioev\Utils\Network;
@@ -129,6 +130,30 @@ class Request
   public function addHeaders(array $headers): Request
   {
     return $this->addOpt(CURLOPT_HTTPHEADER, $headers);
+  }
+
+  /**
+   * The name of a file to save all internal cookies
+   */
+  public function addCookieJar(string $file)
+  {
+    return $this->addOpt(
+      CURLOPT_COOKIEJAR,
+      $file
+    );
+  }
+
+  /**
+   * The name of the file containing the cookie data.
+   */
+  public function addCookieFile(CookieFileHandler|string $cookie)
+  {
+    if ($cookie instanceof CookieFileHandler) {
+      $cookie->save();
+      $cookie = $cookie->getFileName();
+    }
+
+    return $this->addOpt(CURLOPT_COOKIEFILE, $cookie);
   }
 
   /**
