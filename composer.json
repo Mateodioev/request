@@ -17,6 +17,7 @@
         }
     ],
     "require": {
-        "mateodioev/utils": "^1.2"
+        "mateodioev/utils": "^1.2",
+        "mateodioev/netscape-cookie": "^1.0"
     }
 }
