@@ -197,7 +197,7 @@ class Request
       $this->error->errno = curl_errno($this->ch);
       $this->error->message = curl_error($this->ch);
       $this->error->msg = 'Curl error (' . $this->error->errno . '): ' . $this->error->message;
-      throw new RequestException($this->error->msg);
+      throw new RequestException($this->error->msg, $this->error->errno);
       
     } else {
       $headers->request = Utils::parseHeadersHandle($info['request_header']);
