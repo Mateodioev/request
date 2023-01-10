@@ -40,7 +40,7 @@ echo $res
 
 ## Request Response
 ```php
-$req = Request::get('https://netotf.space/v1/api');
+$req = Request::GET('https://netotf.space/v1/api');
 $res = $req->Run('/http-cat/200');
 $res->toJson(true); // Parse body responde to json
 // Headers info
