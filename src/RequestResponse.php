@@ -112,6 +112,14 @@ EOF;
     return $this->error->message ?? '';
   }
 
+  public function getAllHeaders(): array
+  {
+	return [
+	  'request' => $this->headers->request,
+	  'response' => $this->headers->response
+	];
+  }
+
   /**
    * Get a sent header
    */
@@ -136,9 +144,9 @@ EOF;
     return $this->body;
   }
 
-  public function getInfo(?string $key = null)
+  public function getInfo(?string $key = null): mixed
   {
-    return $key !== null ? $this->info[$key] : $this->info;
+	return $this->info[$key] ?? ($key ? $this->info : null);
   }
 
   public function __toString(): string
