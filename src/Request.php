@@ -11,6 +11,7 @@ use function curl_init, curl_setopt_array, curl_setopt, strtoupper;
 
 class Request
 {
+  public const VERSION = '2.2';
 
   private stdClass $headerCallback;
 
@@ -33,12 +34,12 @@ class Request
 
   public static array $default_opts = [
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HEADER => false,
+    CURLOPT_HEADER         => false,
     CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_AUTOREFERER => true,
+    CURLOPT_AUTOREFERER    => true,
     CURLOPT_CONNECTTIMEOUT => 30,
-    CURLOPT_TIMEOUT => 60,
-    CURLINFO_HEADER_OUT => true,
+    CURLOPT_TIMEOUT        => 60,
+    CURLINFO_HEADER_OUT    => true,
   ];
 
   public function __construct() {
@@ -84,6 +85,28 @@ class Request
       return $this->addOpts($options);
     }
     return $this;
+  }
+
+  /**
+   * Create new instance with HTTP method GET
+   */
+  public static function GET(string $url): Request
+  {
+	return self::create($url)
+		->addOpts([
+			CURLOPT_HTTPGET   => true,
+			CURLOPT_USERAGENT => 'mateodioev/request v' . self::VERSION
+	]);
+  }
+
+  public static function POST(string $url, mixed $postfields): Request
+  {
+	return self::create($url)
+		->addOpts([
+			CURLOPT_POST       => true,
+			CURLOPT_USERAGENT  => 'mateodioev/request v' . self::VERSION,
+			CURLOPT_POSTFIELDS => $postfields
+		]);
   }
 
   /**
@@ -179,7 +202,7 @@ class Request
     }
   }
 
-  public function Run(?string $endpoint = null): RequestResponse
+  public function run(?string $endpoint = null): RequestResponse
   {
     if ($endpoint) {
       if (!Network::IsValidUrl($this->url . $endpoint)) {
@@ -217,5 +240,4 @@ class Request
   {
     return $this->ch;
   }
-
 }
