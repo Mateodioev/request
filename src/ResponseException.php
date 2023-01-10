@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Mateodioev\Request;
 
@@ -7,5 +7,5 @@ use RuntimeException;
 
 class ResponseException extends RuntimeException implements ExceptionInterface
 {
-  # code...
+    # code...
 }
