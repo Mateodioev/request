@@ -7,7 +7,6 @@ use stdClass;
 
 class RequestResponse
 {
-    private string|fakeStdClass|stdClass|array $body = '';
     private stdClass $headers;
     private stdClass $error;
     private array $info;
@@ -84,9 +83,6 @@ EOF;
 
         try {
             $this->body = \json_decode($body, $asociative);
-            if (!$asociative) {
-                $this->body = new fakeStdClass($this->body);
-            }
         } catch (\Throwable $e) {
             if (\json_last_error_msg() != 'No error') {
                 $this->body = $body; // Return original
@@ -142,7 +138,7 @@ EOF;
     /**
      * Get request body
      */
-    public function getBody(): string|fakeStdClass|stdClass|array
+    public function getBody(): string|stdClass|array
     {
         return $this->body;
     }
