@@ -1,6 +1,6 @@
 <?php
 
-namespace Mateodioev\Request;
+namespace Mateodioev\Request\Exceptions;
 
 use Mateodioev\Utils\Exceptions\ExceptionInterface;
 use RuntimeException;
