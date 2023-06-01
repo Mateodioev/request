@@ -2,19 +2,19 @@
 
 namespace Mateodioev\Request;
 
+use Mateodioev\Request\Exceptions\InvalidUrlException;
 use Mateodioev\Utils\Network;
-use Mateodioev\Utils\Exceptions\RequestException;
 
 class Utils
 {
     /**
      * Validate url
-     * @throws RequestException
+     * @throws InvalidUrlException
      */
     public static function ValidateUrl(string $url): void
     {
-        if (empty($url) || !Network::IsValidUrl($url)) {
-            throw new RequestException('Invalid URL');
+        if (empty($url) || !@Network::IsValidUrl($url)) {
+            throw InvalidUrlException::fromUrl($url);
         }
     }
 
@@ -49,7 +49,7 @@ class Utils
         $src = \preg_split("/\n/", $src, -1, PREG_SPLIT_NO_EMPTY);
         $headers = [];
 
-        for ($i=0; $i < \count($src); $i++) {
+        for ($i = 0; $i < \count($src); $i++) {
             if (\strpos($src[$i], ':') !== false) {
                 list($key, $value) = \explode(':', $src[$i], 2);
                 $key = \trim($key);

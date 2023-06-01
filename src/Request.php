@@ -9,6 +9,10 @@ use Mateodioev\Utils\Network;
 use stdClass;
 use CurlHandle;
 
+/**
+ * Remove in v3.0
+ * @deprecated Use Mateodioev\Request\Clients\Curl instead
+ */
 class Request
 {
     public const VERSION = '2.2';
@@ -33,13 +37,13 @@ class Request
     public stdClass $error;
 
     public static array $default_opts = [
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_HEADER         => false,
-      CURLOPT_FOLLOWLOCATION => true,
-      CURLOPT_AUTOREFERER    => true,
-      CURLOPT_CONNECTTIMEOUT => 30,
-      CURLOPT_TIMEOUT        => 60,
-      CURLINFO_HEADER_OUT    => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HEADER         => false,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_AUTOREFERER    => true,
+        CURLOPT_CONNECTTIMEOUT => 30,
+        CURLOPT_TIMEOUT        => 60,
+        CURLINFO_HEADER_OUT    => true,
     ];
 
     public function __construct()
@@ -97,7 +101,7 @@ class Request
             ->addOpts([
                 CURLOPT_HTTPGET   => true,
                 CURLOPT_USERAGENT => 'mateodioev/request v' . self::VERSION
-        ]);
+            ]);
     }
 
     public static function POST(string $url, mixed $postfields): Request
@@ -146,7 +150,7 @@ class Request
      */
     public function addOpt(int $option, mixed $value): Request
     {
-		return $this->addOpts([$option => $value]);
+        return $this->addOpts([$option => $value]);
     }
 
     /**
@@ -159,17 +163,17 @@ class Request
         return $this->addOpt(CURLOPT_HTTPHEADER, $headers);
     }
 
-	/**
-	 * Add cookie file using `addCookieJar` and `addCookieFile`
-	 */
-	public function addCookie(CookieFileHandler|string $cookie)
-	{
-		if ($cookie instanceof CookieFileHandler)
-			$cookie = $cookie->getFileName();
+    /**
+     * Add cookie file using `addCookieJar` and `addCookieFile`
+     */
+    public function addCookie(CookieFileHandler|string $cookie)
+    {
+        if ($cookie instanceof CookieFileHandler)
+            $cookie = $cookie->getFileName();
 
-		return $this->addCookieFile($cookie)
-			->addCookieJar($cookie);
-	}
+        return $this->addCookieFile($cookie)
+            ->addCookieJar($cookie);
+    }
 
     /**
      * The name of a file to save all internal cookies
@@ -188,7 +192,7 @@ class Request
     public function addCookieFile(CookieFileHandler|string $cookie)
     {
         if ($cookie instanceof CookieFileHandler)
-			$cookie = $cookie->getFileName();
+            $cookie = $cookie->getFileName();
 
         return $this->addOpt(CURLOPT_COOKIEFILE, $cookie);
     }
@@ -208,11 +212,11 @@ class Request
         }
     }
 
-    public function run(?string $endpoint = null): RequestResponse
+    public function run(?string $endpoint = null): Response
     {
         if ($endpoint) {
             if (!Network::IsValidUrl($this->url . $endpoint))
-				$endpoint = urlencode($endpoint);
+                $endpoint = urlencode($endpoint);
 
             $this->addOpt(CURLOPT_URL, $this->url . $endpoint);
         }
@@ -235,7 +239,7 @@ class Request
         // Close handle
         \curl_close($this->ch);
 
-        return new RequestResponse($response, $headers, $this->error, $info);
+        return new Response($response, $headers, $info);
     }
 
     /**
