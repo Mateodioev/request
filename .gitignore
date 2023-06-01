@@ -1,5 +1,6 @@
 tests/
 vendor/
+.idea/
 
 composer.phar
 composer.lock
